@@ -293,7 +293,38 @@ server <- function(input, output, session) {
   })
   
   # Reactive values for models and predictions
-  models <- reactiveValues(logistic = NULL, rf = NULL, logistic_pred_prob = NULL, rf_pred_prob = NULL)
+  # Reactive values for models and predictions
+  # Check if models exist and load them
+  initial_logistic <- NULL
+  initial_rf <- NULL
+  
+  if (file.exists("logistic_model.rds")) {
+    initial_logistic <- readRDS("logistic_model.rds")
+    print("Loaded pre-trained Logistic Regression model.")
+  }
+  
+  if (file.exists("rf_model.rds")) {
+    initial_rf <- readRDS("rf_model.rds")
+    print("Loaded pre-trained Random Forest model.")
+  }
+
+  models <- reactiveValues(
+    logistic = initial_logistic, 
+    rf = initial_rf, 
+    logistic_pred_prob = NULL, 
+    rf_pred_prob = NULL
+  )
+  
+  # Calculate initial predictions if models are loaded
+  observe({
+    req(models$logistic, models$rf, data_splits$test)
+    if (is.null(models$logistic_pred_prob)) {
+       models$logistic_pred_prob <- predict(models$logistic, data_splits$test, type = "prob")[, "Yes"]
+    }
+    if (is.null(models$rf_pred_prob)) {
+       models$rf_pred_prob <- predict(models$rf, data_splits$test, type = "prob")[, "Yes"]
+    }
+  })
   
  
   # Data Summary Outputs

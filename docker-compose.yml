@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  shiny:
+    build:
+      context: ./Churn_Prediction-main
+      dockerfile: Dockerfile
+    ports:
+      - "3838:3838"
+    restart: always
+
+  web:
+    build:
+      context: ./landing_page
+      dockerfile: Dockerfile
+      args:
+        - VITE_SHINY_DASHBOARD_URL=http://localhost:3838
+    ports:
+      - "8080:80"
+    depends_on:
+      - shiny
+    restart: always
